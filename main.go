@@ -8,29 +8,40 @@ import (
 )
 
 func main() {
-	// 1. Διαβάζουμε το input από το pipe
+	// 1. Read input from the pipe
 	inputData, err := io.ReadAll(os.Stdin)
-	if err != nil || len(inputData) == 0 {
-		fmt.Println("Not a quad function")
+	// ERROR 1: System issue reading the input
+	if err != nil {
+		fmt.Printf("❌ System Error: Failed to read data (%v)\n", err)
 		return
 	}
+
+	// ERROR 2: User provided no data
+	if len(inputData) == 0 {
+		fmt.Println("⚠️  Warning: No data provided.")
+		fmt.Println("💡 Tip: Please provide a shape first. Example: ./quadA 3 3 | ./quadchecker")
+		return
+	}
+
 	input := string(inputData)
 
-	// 2. Ελέγχουμε αν είναι σωστό παραλληλόγραμμο και παίρνουμε διαστάσεις
+	// 2. Check if the input forms a uniform grid and get its dimensions
 	x, y, isValid := getDimensions(input)
+
+	// ERROR 3: The input has uneven lines (not a valid grid)
 	if !isValid {
-		fmt.Println("Not a quad function")
+		fmt.Println("📐 Format Error: The provided shape has uneven lines (it's not a Quad).")
+		fmt.Println("💡 Tip: Make sure all lines of the shape have the exact same length.")
 		return
 	}
 
-	// 3. Λίστα με τα Quads
+	// 3. List of Quads
 	quads := []string{"quadA", "quadB", "quadC", "quadD", "quadE"}
 	var matches []string
 
-	// Αφαιρούμε το τελευταίο \n από το input (Παγίδα του Test Script)
 	safeInput := strings.TrimRight(input, "\n")
 
-	// 4. Ελέγχουμε ένα-ένα τα Quads
+	// 4. Check against all known Quads
 	for _, name := range quads {
 		generated := generateQuad(name, x, y)
 		safeGenerated := strings.TrimRight(generated, "\n")
@@ -40,60 +51,67 @@ func main() {
 		}
 	}
 
-	// 5. Αν δεν βρέθηκε κανένα
+	// ERROR 4: The input is a valid grid, but it doesn't match any known Quad
 	if len(matches) == 0 {
-		fmt.Println("Not a quad function")
+		fmt.Printf("🔍 Result: No matching Quad found for this %dx%d input.\n", x, y)
 		return
 	}
 
-	// 6. Τυπώνουμε τα matches ενωμένα με ||
-	fmt.Println(strings.Join(matches, " || "))
+	// SUCCESS! Check if we found one match or multiple matches
+	if len(matches) > 1 {
+		fmt.Println("✅ Matches found:", strings.Join(matches, " || "))
+	} else {
+		fmt.Println("✅ Match found:", strings.Join(matches, " || "))
+	}
 }
 
-// Υπολογίζει το πλάτος (x) και ύψος (y) και ελέγχει αν το σχήμα είναι ομοιόμορφο
+// Calculates width (x) and height (y) and checks if the input is a uniform grid
 func getDimensions(s string) (int, int, bool) {
-	// 1. Πριν κάνουμε ΟΤΙΔΗΠΟΤΕ, κόβουμε το '\n' που μπαίνει αυτόματα στο τέλος
+	// 1. Before doing anything, cut the '\n' that is automatically added at the end
 	s = strings.TrimSuffix(s, "\n")
 
-	// 2. Χωρίζουμε το σχήμα στις γραμμές του
+	// 2. Split the input into lines
 	lines := strings.Split(s, "\n")
 
-	// 3. Βρίσκουμε το ύψος (πόσες γραμμές βγήκαν;)
+	// 3. Find the height (how many lines are there?)
 	y := len(lines)
 	if y == 0 {
 		return 0, 0, false
 	}
 
-	// 4. Βρίσκουμε το πλάτος (πόσους χαρακτήρες έχει η πρώτη γραμμή;)
+	// 4. Find the width (how many characters does the first line have?)
 	x := len(lines[0])
 	if x == 0 {
 		return 0, 0, false
 	}
 
-	// 5. Ελέγχουμε αν όλες οι γραμμές είναι ίσες (τέλειο ορθογώνιο)
+	// 5. Check if all lines are equal in length (uniform grid)
 	for _, line := range lines {
 		if len(line) != x {
-			return 0, 0, false // Αν βρει στραβή γραμμή, σταματάει!
+			return 0, 0, false // If it finds an uneven line, it stops!
 		}
 	}
 
-	// Αν έφτασε ως εδώ, το σχήμα είναι τέλειο!
+	// If it reached here, the input is a uniform grid!
 	return x, y, true
 }
 
-// Δημιουργεί στη μνήμη το τέλειο Quad για να το συγκρίνουμε
-func generateQuad(name string, x, y int) string {
-	var sb strings.Builder
+// Creates the perfect Quad in memory to compare it
+func generateQuad(name string, x int, y int) string {
+	result := ""
+
 	for i := 0; i < y; i++ {
 		for j := 0; j < x; j++ {
-			sb.WriteByte(getChar(name, x, y, i, j))
+			char := getChar(name, x, y, i, j)
+			result = result + string(char)
 		}
-		sb.WriteByte('\n')
+		result = result + "\n"
 	}
-	return sb.String()
+
+	return result
 }
 
-// Επιστρέφει τον σωστό χαρακτήρα ανάλογα με το Quad και τη θέση (γωνίες/πλευρές)
+// Returns the correct character depending on the Quad and the position (corners/edges)
 func getChar(quad string, x, y, i, j int) byte {
 	isTop := (i == 0)
 	isBottom := (i == y-1)

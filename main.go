@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -24,6 +25,27 @@ func main() {
 	}
 
 	input := string(inputData)
+
+	// --- INTERACTIVE CONFIRMATION BLOCK ---
+	// Display the parsed shape and ask the user for confirmation.
+	// We use /dev/tty to read the user's response (ENTER/q) because
+	// os.Stdin is already occupied by the piped shape data.
+	fmt.Println("--- RECEIVED SHAPE ---")
+	fmt.Print(input)
+	fmt.Println()
+	fmt.Print("The input forms the shape above. Do you want to proceed? [Press ENTER to match or 'q' to exit]:")
+
+	tty, err := os.Open("/dev/tty")
+	if err == nil {
+		reader := bufio.NewReader(tty)
+		response, _ := reader.ReadString('\n')
+		tty.Close()
+
+		if strings.TrimSpace(response) == "q" {
+			fmt.Println("Process exited by user.")
+			return
+		}
+	}
 
 	// 2. Check if the input forms a uniform grid and get its dimensions
 	x, y, isValid := getDimensions(input)
@@ -67,39 +89,31 @@ func main() {
 
 // Calculates width (x) and height (y) and checks if the input is a uniform grid
 func getDimensions(s string) (int, int, bool) {
-	// 1. Before doing anything, cut the '\n' that is automatically added at the end
 	s = strings.TrimSuffix(s, "\n")
-
-	// 2. Split the input into lines
 	lines := strings.Split(s, "\n")
 
-	// 3. Find the height (how many lines are there?)
 	y := len(lines)
 	if y == 0 {
 		return 0, 0, false
 	}
 
-	// 4. Find the width (how many characters does the first line have?)
 	x := len(lines[0])
 	if x == 0 {
 		return 0, 0, false
 	}
 
-	// 5. Check if all lines are equal in length (uniform grid)
 	for _, line := range lines {
 		if len(line) != x {
-			return 0, 0, false // If it finds an uneven line, it stops!
+			return 0, 0, false
 		}
 	}
 
-	// If it reached here, the input is a uniform grid!
 	return x, y, true
 }
 
 // Creates the perfect Quad in memory to compare it
 func generateQuad(name string, x int, y int) string {
 	result := ""
-
 	for i := 0; i < y; i++ {
 		for j := 0; j < x; j++ {
 			char := getChar(name, x, y, i, j)
@@ -107,7 +121,6 @@ func generateQuad(name string, x int, y int) string {
 		}
 		result = result + "\n"
 	}
-
 	return result
 }
 

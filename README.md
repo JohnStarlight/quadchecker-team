@@ -74,6 +74,8 @@ The input forms the shape above. Do you want to proceed? [Press ENTER to match o
 
 ## Troubleshooting
 
+- **Permission Denied: If your system blocks you from running the programs, you need to grant them execution rights. Run the command chmod +x quadA quadB quadC quadD quadE quadchecker in your terminal to make all the files executable.
 - **System Error**: If you see `❌ System Error`, ensure the input pipe is functioning correctly.
 - **Warning: No data provided**: Ensure you are piping output into the command.
 - **Format Error**: The input lines must all be the same length to form a valid rectangle.
+

@@ -13,14 +13,6 @@ Quadchecker is a command-line tool written in Go that identifies specific ASCII 
 
 - Go (Golang) installed on your machine.
 
-## Installation
-
-1. Navigate to the project directory.
-2. Build the executable:
-
-```bash
-go build -o quadchecker main.go
-```
 
 ## Usage
 
